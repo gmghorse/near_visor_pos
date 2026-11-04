@@ -106,16 +106,26 @@ export default function Products() {
 
     const save = async () => {
         if (!form.name.trim()) return setError("Enter a product name.");
-        if (form.price === "" || Number(form.price) < 0) return setError("Enter a valid price.");
+        const price = Number(form.price);
+        const cost = Number(form.cost || 0);
+        const stock = Number(form.stock || 0);
+        const reorderLevel = Number(form.reorderLevel || 0);
+        if (form.price === "" || !Number.isFinite(price) || price < 0)
+            return setError("Enter a valid price.");
+        if (!Number.isFinite(cost) || cost < 0) return setError("Enter a valid cost.");
+        if (!Number.isInteger(stock) || stock < 0)
+            return setError("Opening stock must be a whole number of zero or more.");
+        if (!Number.isInteger(reorderLevel) || reorderLevel < 0)
+            return setError("Reorder level must be a whole number of zero or more.");
         const input = {
             name: form.name.trim(),
             sku: form.sku.trim() || null,
             barcode: form.barcode.trim() || null,
             categoryId: form.categoryId || null,
             price: toKobo(form.price),
-            cost: toKobo(form.cost || 0),
-            stock: Math.trunc(Number(form.stock || 0)),
-            reorderLevel: Math.trunc(Number(form.reorderLevel || 0)),
+            cost: toKobo(cost),
+            stock,
+            reorderLevel,
         };
         try {
             if (editing) await api.updateProduct(editing.id, input);

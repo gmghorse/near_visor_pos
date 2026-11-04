@@ -77,9 +77,9 @@ export const api = {
         invoke<Product[]>("list_products", { includeInactive }),
     createProduct: (input: ProductInput) => invoke<Product>("create_product", { input }),
     updateProduct: (id: string, input: ProductInput) =>
-        invoke<Product>("update_product", { id, input }),
-    setProductActive: (id: string, isActive: boolean) =>
-        invoke<void>("set_product_active", { id, isActive }),
+        invoke<Product>("update_product", { productId: id, input }),
+    setProductActive: (productId: string, isActive: boolean) =>
+        invoke<void>("set_product_active", { productId, isActive }),
 
     listCategories: () => invoke<Category[]>("list_categories"),
     createCategory: (name: string) => invoke<Category>("create_category", { name }),

@@ -199,6 +199,13 @@ async fn update_product(
     product_id: String,
     input: ProductInput,
 ) -> Result<ProductDto, String> {
+    if input.name.trim().is_empty()
+        || input.price < 0
+        || input.cost < 0
+        || input.reorder_level < 0
+    {
+        return Err("Product details are invalid".into());
+    }
     let guard = db.lock().await;
     guard.execute_raw(Statement::from_string(DbBackend::Sqlite, format!("UPDATE products SET name={},sku={},barcode={},category_id={},price={},cost={},reorder_level={},updated_at=CURRENT_TIMESTAMP WHERE id={}", sql(input.name.trim()), input.sku.as_deref().map(sql).unwrap_or("NULL".into()), input.barcode.as_deref().map(sql).unwrap_or("NULL".into()), input.category_id.as_deref().map(sql).unwrap_or("NULL".into()), input.price, input.cost, input.reorder_level, sql(&product_id)))).await.map_err(db_error)?;
     query_product(&guard, &product_id).await
@@ -648,9 +655,31 @@ async fn backup_database(
 
 fn database_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let path = if cfg!(debug_assertions) {
-        std::env::current_dir()
-            .map_err(db_error)?
-            .join("src-tauri/dev.db")
+        let app_data = app.path().app_data_dir().map_err(db_error)?;
+        let project_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .ok_or("Unable to locate project directory")?
+            .to_path_buf();
+        let path = project_root.join("data").join("near-visor-dev.db");
+        if !path.exists() {
+            fs::create_dir_all(path.parent().ok_or("Unable to locate database directory")?)
+                .map_err(db_error)?;
+            // Prefer the copy made by the previous version, then fall back to
+            // the older database stored relative to the app's working folder.
+            let app_data_copy = app_data.join("near-visor-dev.db");
+            // Older dev builds stored the database under the current working
+            // directory, which can be inside src-tauri and trigger a restart
+            // when the database changes. Preserve that database on upgrade.
+            let legacy_path = std::env::current_dir()
+                .map_err(db_error)?
+                .join("src-tauri/dev.db");
+            if app_data_copy.exists() {
+                fs::copy(app_data_copy, &path).map_err(db_error)?;
+            } else if legacy_path.exists() {
+                fs::copy(legacy_path, &path).map_err(db_error)?;
+            }
+        }
+        path
     } else {
         app.path()
             .app_data_dir()
