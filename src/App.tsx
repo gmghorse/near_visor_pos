@@ -5,7 +5,6 @@ import {
   CashRegisterIcon,
   CaretDoubleLeftIcon,
   CaretDoubleRightIcon,
-  ChartBarIcon,
   GearIcon,
   MoonIcon,
   PackageIcon,
@@ -23,7 +22,6 @@ const navItems = [
   { title: "POS", to: "/pos", icon: CashRegisterIcon },
   { title: "Inventory", to: "/inventory", icon: WarehouseIcon },
   { title: "Products", to: "/products", icon: PackageIcon },
-  { title: "Reports", to: "/reports", icon: ChartBarIcon },
   { title: "Sales History", to: "/sales-history", icon: ReceiptIcon },
   { title: "Settings", to: "/settings", icon: GearIcon },
 ];

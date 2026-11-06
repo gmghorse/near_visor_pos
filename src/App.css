@@ -20,7 +20,30 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 1; filter: sepia(1) s
 .app-main { min-width: 0; min-height: 0; flex: 1; overflow-y: auto; overflow-x: hidden; }.topbar { height: 86px; display: flex; justify-content: space-between; align-items: center; padding: 0 38px; border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--background) 92%, transparent); }.eyebrow { color: var(--muted-foreground); font-size: 11px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }.topbar h1 { margin: 2px 0 0; text-align: left; font-size: 22px; letter-spacing: -.04em; }.topbar-actions { display: flex; align-items: center; gap: 10px; }.icon-button { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--border); border-radius: 10px; color: var(--muted-foreground); background: var(--card); box-shadow: none; }.icon-button:hover { color: var(--primary); border-color: var(--primary); }.icon-button svg { font-size: 17px; }.user-chip { display: flex; align-items: center; gap: 9px; margin-left: 9px; padding-left: 14px; border-left: 1px solid var(--border); }.avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; color: var(--primary-foreground); background: var(--primary); font-size: 12px; font-weight: 750; }.user-copy { display: grid; line-height: 1.15; }.user-copy strong { font-size: 12px; }.user-copy span { color: var(--muted-foreground); font-size: 10px; margin-top: 3px; }.page-content { max-width: 1500px; padding: 32px 38px 50px; }
 .page-content h1.text-2xl { display: none; }
 @media (max-width: 700px) { .app-sidebar { width: 78px; flex-basis: 78px; align-items: center; }.app-sidebar .brand-lockup { padding-left: 0; padding-right: 0; }.app-sidebar .brand-lockup > div:not(.brand-mark), .app-sidebar .nav-section-label, .app-sidebar .app-nav-link span, .app-sidebar .online-status, .app-sidebar .collapse-button { display: none; }.app-nav-link { justify-content: center; width: 48px; padding: 0; }.topbar { padding: 0 18px; }.user-copy { display: none; }.page-content { padding: 24px 18px 40px; } }
-@media print { body * { visibility: hidden !important; } .receipt-print, .receipt-print * { visibility: visible !important; } .receipt-print { position: absolute; top: 0; left: 0; width: 80mm; margin: 0; border: 0; box-shadow: none; } .receipt-print button { display: none; } }
+.receipt-paper { width: 100%; max-width: 80mm; color: #111; font-family: Arial, sans-serif; font-size: 12px; line-height: 1.4; }
+.receipt-store { padding-bottom: 12px; text-align: center; }
+.receipt-store h1 { margin: 0 0 4px; font-size: 18px; font-weight: 700; }
+.receipt-store p { margin: 2px 0; }
+.receipt-message { padding-top: 5px; }
+.receipt-meta, .receipt-totals { display: grid; gap: 4px; padding: 9px 0; border-top: 1px dashed #777; }
+.receipt-meta > div, .receipt-totals > div, .receipt-items-heading, .receipt-item { display: flex; justify-content: space-between; gap: 8px; }
+.receipt-meta > div span:first-child, .receipt-totals > div span:first-child { color: #444; }
+.receipt-items { padding: 8px 0; border-top: 1px dashed #777; }
+.receipt-items-heading { padding-bottom: 5px; font-weight: 700; }
+.receipt-item { align-items: flex-start; padding: 4px 0; }
+.receipt-item > div { min-width: 0; }
+.receipt-item small { display: block; color: #444; }
+.receipt-item > span { white-space: nowrap; }
+.receipt-grand-total { margin-top: 3px; padding-top: 7px; border-top: 1px dashed #777; font-size: 15px; font-weight: 700; }
+.receipt-thanks { padding: 12px 0 4px; border-top: 1px dashed #777; text-align: center; }
+@media print {
+  @page { margin: 0; }
+  body * { visibility: hidden !important; }
+  .receipt-print, .receipt-print * { visibility: visible !important; }
+  .receipt-print { position: absolute; top: 0; left: 0; width: var(--receipt-width, 80mm); max-width: var(--receipt-width, 80mm); margin: 0; padding: 3mm; border: 0; border-radius: 0; box-shadow: none; background: #fff; color: #111; }
+  .receipt-actions { display: none !important; }
+  .receipt-paper { max-width: none; font-size: 11px; }
+}
 .quantity-button { color: var(--primary); border-color: color-mix(in oklab, var(--primary) 35%, var(--border)); }
 .quantity-button:hover { color: var(--primary); border-color: var(--primary); background: color-mix(in oklab, var(--primary) 10%, transparent); }
 .date-picker-trigger { color: var(--foreground); border-color: var(--border); background: var(--card); }

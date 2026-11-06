@@ -17,9 +17,17 @@ export default function Pos() {
     const [cart, setCart] = useState<CartLine[]>([]);
     const [payment, setPayment] = useState("cash");
     const [taxRate, setTaxRate] = useState(0);
+    const [receiptSettings, setReceiptSettings] = useState({
+        business_name: "My Store",
+        address: "",
+        phone: "",
+        receipt_header: "",
+        receipt_footer: "Thank you for your purchase!",
+        receipt_width: "80mm",
+    });
     const [busy, setBusy] = useState(false);
     const [notice, setNotice] = useState<Notice | null>(null);
-    const [receipt, setReceipt] = useState<{ result: CheckoutResult; lines: CartLine[] } | null>(null);
+    const [receipt, setReceipt] = useState<{ result: CheckoutResult; lines: CartLine[]; payment: string } | null>(null);
     const searchRef = useRef<HTMLInputElement>(null);
 
     const loadProducts = () => api.listProducts().then(setProducts);
@@ -27,7 +35,10 @@ export default function Pos() {
     useEffect(() => {
         loadProducts().catch((e) => setNotice({ kind: "error", text: errorMessage(e) }));
         api.getSettings()
-            .then((s) => setTaxRate(Number(s.tax_rate ?? 0)))
+            .then((s) => {
+                setTaxRate(Number(s.tax_rate ?? 0));
+                setReceiptSettings((current) => ({ ...current, ...s }));
+            })
             .catch(() => {});
         searchRef.current?.focus();
     }, []);
@@ -94,7 +105,7 @@ export default function Pos() {
                 payment,
             );
             setCart([]);
-            setReceipt({ result, lines: completedLines });
+            setReceipt({ result, lines: completedLines, payment });
             setNotice({ kind: "ok", text: "Sale completed." });
             await loadProducts();
             searchRef.current?.focus();
@@ -293,14 +304,33 @@ export default function Pos() {
             </Card>
         </div>
         {receipt && (
-            <section className="receipt-print mt-6 max-w-md rounded-xl border bg-card p-5 shadow-sm">
-                <div className="mb-4 flex items-start justify-between gap-3">
+            <section className="receipt-print mt-6 max-w-md rounded-xl border bg-card p-5 shadow-sm" style={{ "--receipt-width": receiptSettings.receipt_width } as React.CSSProperties}>
+                <div className="receipt-actions mb-4 flex items-start justify-between gap-3">
                     <div><h2 className="font-semibold">Receipt ready</h2><p className="text-xs text-muted-foreground">Sale {receipt.result.sale_id.slice(-8)} · {formatDate(receipt.result.created_at)}</p></div>
                     <Button size="sm" onClick={printReceipt}>Print receipt</Button>
                 </div>
-                <div className="receipt-paper space-y-2 text-sm">
-                    {receipt.lines.map(({ product, qty }) => <div key={product.id} className="flex justify-between gap-4"><span>{qty} × {product.name}</span><span>{formatMoney(product.price * qty)}</span></div>)}
-                    <div className="mt-3 space-y-1 border-t pt-3"><div className="flex justify-between"><span>Subtotal</span><span>{formatMoney(receipt.result.subtotal)}</span></div><div className="flex justify-between"><span>Tax</span><span>{formatMoney(receipt.result.tax)}</span></div><div className="flex justify-between font-semibold"><span>Total</span><span>{formatMoney(receipt.result.total)}</span></div></div>
+                <div className="receipt-paper text-sm">
+                    <header className="receipt-store">
+                        <h1>{receiptSettings.business_name || "My Store"}</h1>
+                        {receiptSettings.address && <p>{receiptSettings.address}</p>}
+                        {receiptSettings.phone && <p>{receiptSettings.phone}</p>}
+                        {receiptSettings.receipt_header && <p className="receipt-message">{receiptSettings.receipt_header}</p>}
+                    </header>
+                    <div className="receipt-meta">
+                        <div><span>Receipt</span><span>{receipt.result.sale_id.slice(-8)}</span></div>
+                        <div><span>Date</span><span>{formatDate(receipt.result.created_at)}</span></div>
+                        <div><span>Payment</span><span className="capitalize">{receipt.payment}</span></div>
+                    </div>
+                    <div className="receipt-items">
+                        <div className="receipt-items-heading"><span>Item</span><span>Amount</span></div>
+                        {receipt.lines.map(({ product, qty }) => <div key={product.id} className="receipt-item"><div><span>{product.name}</span><small>{qty} × {formatMoney(product.price)}</small></div><span>{formatMoney(product.price * qty)}</span></div>)}
+                    </div>
+                    <div className="receipt-totals">
+                        <div><span>Subtotal</span><span>{formatMoney(receipt.result.subtotal)}</span></div>
+                        <div><span>Tax</span><span>{formatMoney(receipt.result.tax)}</span></div>
+                        <div className="receipt-grand-total"><span>Total</span><span>{formatMoney(receipt.result.total)}</span></div>
+                    </div>
+                    {receiptSettings.receipt_footer && <footer className="receipt-thanks">{receiptSettings.receipt_footer}</footer>}
                 </div>
             </section>
         )}
