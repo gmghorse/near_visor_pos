@@ -38,7 +38,12 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 1; filter: sepia(1) s
 .receipt-thanks { padding: 12px 0 4px; border-top: 1px dashed #777; text-align: center; }
 @media print {
   @page { margin: 0; }
+  html, body, #root, .app-shell, .app-main { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+  .app-shell { display: block !important; }
+  .page-content { max-width: none !important; padding: 0 !important; }
   body * { visibility: hidden !important; }
+  [data-slot="dialog-overlay"] { display: none !important; }
+  [data-slot="dialog-content"] { position: static !important; transform: none !important; display: contents !important; }
   .receipt-print, .receipt-print * { visibility: visible !important; }
   .receipt-print { position: absolute; top: 0; left: 0; width: var(--receipt-width, 80mm); max-width: var(--receipt-width, 80mm); margin: 0; padding: 3mm; border: 0; border-radius: 0; box-shadow: none; background: #fff; color: #111; }
   .receipt-actions { display: none !important; }

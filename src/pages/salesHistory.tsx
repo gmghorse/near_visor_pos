@@ -30,6 +30,14 @@ export default function SalesHistory() {
     const [items, setItems] = useState<SaleItem[]>([]);
     const [confirmVoid, setConfirmVoid] = useState(false);
     const [error, setError] = useState("");
+    const [receiptSettings, setReceiptSettings] = useState({
+        business_name: "My Store",
+        address: "",
+        phone: "",
+        receipt_header: "",
+        receipt_footer: "Thank you for your purchase!",
+        receipt_width: "80mm",
+    });
 
     const load = () =>
         api
@@ -41,8 +49,13 @@ export default function SalesHistory() {
         load();
     }, [from, to]);
 
+    useEffect(() => {
+        api.getSettings().then((s) => setReceiptSettings((current) => ({ ...current, ...s }))).catch(() => {});
+    }, []);
+
     const view = async (sale: Sale) => {
         setSelected(sale);
+        setItems([]);
         setConfirmVoid(false);
         setError("");
         try {
@@ -155,6 +168,44 @@ export default function SalesHistory() {
                         </TableBody>
                     </Table>
 
+                    {selected && items.length > 0 && (
+                        <section
+                            className="receipt-print mt-4 rounded border p-4"
+                            style={{ "--receipt-width": receiptSettings.receipt_width } as React.CSSProperties}
+                        >
+                            <div className="receipt-paper">
+                                <header className="receipt-store">
+                                    <h1>{receiptSettings.business_name || "My Store"}</h1>
+                                    {receiptSettings.address && <p>{receiptSettings.address}</p>}
+                                    {receiptSettings.phone && <p>{receiptSettings.phone}</p>}
+                                    {receiptSettings.receipt_header && <p className="receipt-message">{receiptSettings.receipt_header}</p>}
+                                </header>
+                                <div className="receipt-meta">
+                                    <div><span>Receipt</span><span>{selected.id.slice(-8)}</span></div>
+                                    <div><span>Date</span><span>{formatDate(selected.created_at)}</span></div>
+                                    <div><span>Payment</span><span className="capitalize">{selected.payment_method}</span></div>
+                                    {selected.status === "voided" && <div><span>Status</span><span>VOIDED</span></div>}
+                                </div>
+                                <div className="receipt-items">
+                                    <div className="receipt-items-heading"><span>Item</span><span>Amount</span></div>
+                                    {items.map((item) => (
+                                        <div key={item.id} className="receipt-item">
+                                            <div><span>{item.product_name}</span><small>{item.quantity} × {formatMoney(item.unit_price)}</small></div>
+                                            <span>{formatMoney(item.quantity * item.unit_price)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="receipt-totals">
+                                    <div><span>Subtotal</span><span>{formatMoney(selected.subtotal)}</span></div>
+                                    {selected.discount > 0 && <div><span>Discount</span><span>-{formatMoney(selected.discount)}</span></div>}
+                                    <div><span>Tax</span><span>{formatMoney(selected.tax)}</span></div>
+                                    <div className="receipt-grand-total"><span>Total</span><span>{formatMoney(selected.total)}</span></div>
+                                </div>
+                                {receiptSettings.receipt_footer && <footer className="receipt-thanks">{receiptSettings.receipt_footer}</footer>}
+                            </div>
+                        </section>
+                    )}
+
                     {selected && (
                         <div className="space-y-1 text-sm">
                             <div className="flex justify-between">
@@ -181,6 +232,9 @@ export default function SalesHistory() {
                     {error && <p className="text-sm text-destructive">{error}</p>}
 
                     <DialogFooter>
+                        <Button variant="outline" onClick={() => window.print()} disabled={items.length === 0}>
+                            Print receipt
+                        </Button>
                         <Button variant="outline" onClick={() => setSelected(null)}>
                             Close
                         </Button>
